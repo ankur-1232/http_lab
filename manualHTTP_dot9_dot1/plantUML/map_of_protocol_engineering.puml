@@ -1,0 +1,87 @@
+@startuml
+title HTTP from First Principles — System to Application Map
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam wrapWidth 200
+
+actor "Developer / Protocol Engineer" as Dev
+
+package "Network Stack (Kernel)" {
+  [Ethernet / Wi-Fi (L2)]
+  [IP (Routing)]
+  [TCP / UDP (Transport)]
+  [Syscalls: socket(), bind(), listen(), accept()]
+
+  [Ethernet / Wi-Fi (L2)] --> [IP (Routing)]
+  [IP (Routing)] --> [TCP / UDP (Transport)]
+  [TCP / UDP (Transport)] --> [Syscalls: socket(), bind(), listen(), accept()]
+}
+
+package "User Space" {
+  [libc / Winsock]
+  [Application Protocols: HTTP, FTP, DNS]
+  [Custom Protocols]
+  [TLS / SSL Libraries]
+  [Encoding (UTF-8, JSON, Binary)]
+
+  [Syscalls: socket(), bind(), listen(), accept()] --> [libc / Winsock]
+  [libc / Winsock] --> [TLS / SSL Libraries]
+  [TLS / SSL Libraries] --> [Application Protocols: HTTP, FTP, DNS]
+  [libc / Winsock] --> [Custom Protocols]
+  [Encoding (UTF-8, JSON, Binary)] --> [Application Protocols: HTTP, FTP, DNS]
+}
+
+package "Kernel Responsibilities" {
+  [Socket Buffers]
+  [Checksum + Segmentation]
+  [Retransmission + ACK]
+  [Routing Table]
+  [NIC Driver / DMA]
+
+  [Socket Buffers] --> [Checksum + Segmentation]
+  [Checksum + Segmentation] --> [Retransmission + ACK]
+  [Retransmission + ACK] --> [NIC Driver / DMA]
+  [NIC Driver / DMA] --> [Routing Table]
+}
+
+package "Engineering Domains" {
+  [Systems Programming (C / Rust)]
+  [Transport Layer (Sockets)]
+  [Application Layer (HTTP, DNS, etc.)]
+  [Protocol Engineering]
+
+  [Systems Programming (C / Rust)] --> [Transport Layer (Sockets)]
+  [Transport Layer (Sockets)] --> [Application Layer (HTTP, DNS, etc.)]
+  [Application Layer (HTTP, DNS, etc.)] --> [Protocol Engineering]
+}
+
+package "Byte Flow" {
+  [Text / Object Data]
+  [Encoding to Bytes]
+  [Byte Stream -> TCP]
+  [Packets -> IP]
+  [Frames -> Ethernet]
+  [Physical Transmission]
+
+  [Text / Object Data] --> [Encoding to Bytes]
+  [Encoding to Bytes] --> [Byte Stream -> TCP]
+  [Byte Stream -> TCP] --> [Packets -> IP]
+  [Packets -> IP] --> [Frames -> Ethernet]
+  [Frames -> Ethernet] --> [Physical Transmission]
+}
+
+package "Tools & Exploration" {
+  [tcpdump / Wireshark]
+  [strace / dtrace]
+  [curl / netcat]
+  [logs / debuggers]
+
+  [tcpdump / Wireshark] --> [Packets -> IP]
+  [strace / dtrace] --> [Syscalls: socket(), bind(), listen(), accept()]
+  [curl / netcat] --> [Application Protocols: HTTP, FTP, DNS]
+}
+
+Dev --> [Protocol Engineering]
+Dev --> [curl / netcat]
+@enduml
